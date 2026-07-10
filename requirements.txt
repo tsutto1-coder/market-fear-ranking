@@ -1,0 +1,6 @@
+yfinance
+anthropic
+pillow
+matplotlib
+google-auth
+google-api-python-client
