@@ -1,12 +1,11 @@
 """
 市場恐怖度 売られすぎランキング 画像生成スクリプト
 GitHub Actions から毎日 18:00 JST に実行される。
-生成した画像を Google Drive の指定フォルダに保存する。
+生成した画像を ranking_YYYY-MM-DD.jpg として保存する。
+GitHub Actions の Artifacts からダウンロードできる。
 
 必要な環境変数（GitHub Secrets に登録）:
-  ANTHROPIC_API_KEY      … Claude API キー
-  GOOGLE_SA_JSON         … Google サービスアカウントの JSON（1行に圧縮）
-  DRIVE_FOLDER_ID        … 保存先 Google Drive フォルダの ID
+  ANTHROPIC_API_KEY … Claude API キー（これだけでOK）
 """
 
 import os, io, json, datetime, random
@@ -18,9 +17,6 @@ import matplotlib.dates as mdates
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
 
 # ── フォント（GitHub Actions ubuntu-latest 上でインストールする）──
 FONT_B = '/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc'
@@ -256,29 +252,6 @@ def build_image(ranked, fear_greed, script):
     _cx(d,'本コンテンツは教育目的の情報提供です。投資助言ではありません。',Y_BOTTOM+162,_font(FONT_R,23),(56,60,76))
     return img
 
-# ── STEP5: Google Drive にアップロード ───────────────
-
-def upload_to_drive(image_path: Path):
-    sa_json = os.environ['GOOGLE_SA_JSON']
-    folder_id = os.environ['DRIVE_FOLDER_ID']
-    creds = service_account.Credentials.from_service_account_info(
-        json.loads(sa_json),
-        scopes=['https://www.googleapis.com/auth/drive.file']
-    )
-    service = build('drive', 'v3', credentials=creds)
-    file_metadata = {
-        'name': image_path.name,
-        'parents': [folder_id]
-    }
-    with open(image_path, 'rb') as f:
-        media = MediaIoBaseUpload(f, mimetype='image/jpeg', resumable=True)
-        uploaded = service.files().create(
-            body=file_metadata, media_body=media, fields='id,name,webViewLink'
-        ).execute()
-    print(f'Google Drive にアップロード完了:')
-    print(f'  ファイル名: {uploaded["name"]}')
-    print(f'  URL: {uploaded["webViewLink"]}')
-    return uploaded
 
 # ── メイン ───────────────────────────────────────────
 
@@ -306,7 +279,6 @@ if __name__ == '__main__':
     img.save(out_path, 'JPEG', quality=95)
     print(f'  保存: {out_path}  ({img.size[0]}x{img.size[1]}px)')
 
-    print('\n[STEP5] Google Drive にアップロード...')
-    upload_to_drive(out_path)
+    print(f'\n完了！ {out_path} をダウンロードしてInstagramに投稿してください。')
 
     print('\n=== 完了 ===')
