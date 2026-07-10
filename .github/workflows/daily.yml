@@ -23,14 +23,31 @@ jobs:
       - name: パッケージをインストール
         run: pip install -q yfinance anthropic pillow matplotlib
 
+      - name: APIキーの確認
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "❌ ANTHROPIC_API_KEY が未登録です"
+            exit 1
+          else
+            echo "✅ ANTHROPIC_API_KEY は登録されています"
+          fi
+
       - name: 画像を生成
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python generate_image.py
 
-      - name: 画像を保存（ここからダウンロードできる）
+      - name: 生成されたファイルを確認
+        run: |
+          echo "=== 生成されたファイル一覧 ==="
+          ls -la ranking_*.jpg 2>/dev/null || echo "❌ ranking_*.jpg が見つかりません"
+
+      - name: 画像を保存
         uses: actions/upload-artifact@v4
         with:
           name: ranking-image
           path: ranking_*.jpg
-          retention-days: 7
+          if-no-files-found: error
+          retention-days: 30
