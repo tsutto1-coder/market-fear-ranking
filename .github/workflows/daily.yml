@@ -2,42 +2,35 @@ name: 市場恐怖度ランキング 毎日生成
 
 on:
   schedule:
-    # UTC 09:00 = JST 18:00（夏時間の影響なし）
     - cron: '0 9 * * 1-5'
   workflow_dispatch:
-    # GitHubのActionsタブから手動実行も可能
 
 jobs:
   generate:
     runs-on: ubuntu-latest
-
     steps:
-      - name: リポジトリをチェックアウト
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Python セットアップ
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: 日本語フォントと ffmpeg をインストール
+      - name: フォントをインストール
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq fonts-noto-cjk
 
-      - name: Python パッケージをインストール
-        run: |
-          pip install -q \
-            yfinance \
-            anthropic \
-            pillow \
-            matplotlib \
-            google-auth \
-            google-api-python-client
+      - name: パッケージをインストール
+        run: pip install -q yfinance anthropic pillow matplotlib
 
-      - name: 画像を生成して Google Drive に保存
+      - name: 画像を生成
         env:
-          ANTHROPIC_API_KEY:  ${{ secrets.ANTHROPIC_API_KEY }}
-          GOOGLE_SA_JSON:     ${{ secrets.GOOGLE_SA_JSON }}
-          DRIVE_FOLDER_ID:    ${{ secrets.DRIVE_FOLDER_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python generate_image.py
+
+      - name: 画像を保存（ここからダウンロードできる）
+        uses: actions/upload-artifact@v4
+        with:
+          name: ranking-image
+          path: ranking_*.jpg
+          retention-days: 7
