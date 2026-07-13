@@ -24,8 +24,8 @@ FONT_R = '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc'
 W, H   = 1080, 1350
 BG=(13,15,20); RED=(220,60,60); WHITE=(240,242,248)
 GRAY=(125,130,145); DARK=(10,12,17)
-HEADER_H=267; SECTION_H=58; ROW1_H=190; ROW2_H=148; ROW3_H=148
-CHART_H=286;  BOTTOM_H=253
+HEADER_H=278; SECTION_H=58; ROW1_H=186; ROW2_H=144; ROW3_H=144
+CHART_H=282;  BOTTOM_H=258
 Y_SECTION=HEADER_H; Y_ROW1=Y_SECTION+SECTION_H
 Y_ROW2=Y_ROW1+ROW1_H; Y_ROW3=Y_ROW2+ROW2_H
 Y_CHART=Y_ROW3+ROW3_H; Y_BOTTOM=Y_CHART+CHART_H
@@ -226,15 +226,15 @@ def build_image(ranked, fear_greed, script):
     img=Image.new('RGB',(W,H),BG); d=ImageDraw.Draw(img)
     d.rectangle([(0,0),(W,HEADER_H)], fill=(16,8,8))
     label_f=_font(FONT_R,33); label_txt='市場恐怖度（独自算出）'
-    label_bb=d.textbbox((0,0),label_txt,font=label_f); label_y=18
+    label_bb=d.textbbox((0,0),label_txt,font=label_f); label_y=40  # 上余白確保
     d.text(((W-(label_bb[2]-label_bb[0]))//2,label_y),label_txt,font=label_f,fill=GRAY)
     label_bot=label_y+label_bb[3]
-    num_f=_font(FONT_B,120); num_s=str(int(fear_greed))
-    num_bb=d.textbbox((0,0),num_s,font=num_f); num_y=label_bot+10
+    num_f=_font(FONT_B,108); num_s=str(int(fear_greed))  # 120→108 ヘッダー内に収める
+    num_bb=d.textbbox((0,0),num_s,font=num_f); num_y=label_bot+8
     d.text(((W-(num_bb[2]-num_bb[0]))//2,num_y),num_s,font=num_f,fill=RED)
     num_bot=num_y+num_bb[3]
     date_f=_font(FONT_R,27); date_str=datetime.date.today().strftime('%Y.%m.%d')
-    date_bb=d.textbbox((0,0),date_str,font=date_f); date_y=num_bot+10
+    date_bb=d.textbbox((0,0),date_str,font=date_f); date_y=num_bot+8
     d.text(((W-(date_bb[2]-date_bb[0]))//2,date_y),date_str,font=date_f,fill=(55,60,78))
     d.rectangle([(0,Y_SECTION),(W,Y_SECTION+SECTION_H)], fill=(18,20,28))
     _cx(d,'売られすぎランキング  TOP3',Y_SECTION+10,_font(FONT_B,36),(208,213,228))
@@ -243,13 +243,13 @@ def build_image(ranked, fear_greed, script):
     if len(ranked)>2: draw_row(d,img,3,ranked[2],Y_ROW3,ROW3_H)
     d.rectangle([(0,Y_CHART),(W,Y_CHART+CHART_H)], fill=(11,13,18))
     d.text((44,Y_CHART+10),f'1位 {ranked[0]["name"]} チャート（30日）',font=_font(FONT_B,26),fill=GRAY)
-    chart=make_small_chart(ranked[0]['dates'],ranked[0]['closes'],ranked[0]['rsi_series'],width=988,height=234,dpi=150)
+    chart=make_small_chart(ranked[0]['dates'],ranked[0]['closes'],ranked[0]['rsi_series'],width=988,height=228,dpi=150)
     img.paste(chart.resize((988,234),Image.LANCZOS).convert('RGB'),((W-988)//2,Y_CHART+42))
     d.rectangle([(0,Y_BOTTOM),(W,H)], fill=DARK)
     d.line([(40,Y_BOTTOM+2),(W-40,Y_BOTTOM+2)], fill=(30,34,50), width=1)
-    _cx(d,script['summary'],Y_BOTTOM+28,_font(FONT_R,34),(198,203,218),gap=14)
-    _cx(d,'  '.join(f'#{h}' for h in script['hashtags']),Y_BOTTOM+106,_font(FONT_R,29),(72,120,190))
-    _cx(d,'本コンテンツは教育目的の情報提供です。投資助言ではありません。',Y_BOTTOM+162,_font(FONT_R,23),(56,60,76))
+    next_y=_cx(d,script['summary'],Y_BOTTOM+22,_font(FONT_R,34),(198,203,218),gap=12)
+    next_y=_cx(d,'  '.join(f'#{h}' for h in script['hashtags']),next_y+8,_font(FONT_R,29),(72,120,190))
+    _cx(d,'本コンテンツは教育目的の情報提供です。投資助言ではありません。',next_y+12,_font(FONT_R,23),(56,60,76))
     return img
 
 
