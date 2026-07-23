@@ -292,19 +292,26 @@ def draw_row(draw, img, rank, stock, y, row_h, is_first=False):
 def build_image(ranked, fear_greed, script):
     img=Image.new('RGB',(W,H),BG); d=ImageDraw.Draw(img)
 
-    # ── ヘッダー ──────────────────────────────────────
+    # ── ヘッダー: タイトル → 日付（大）→ 恐怖指数+数値（小）──
     d.rectangle([(0,0),(W,HEADER_H)], fill=(16,8,8))
-    label_f=_font(FONT_R,33); label_txt='市場恐怖度（独自算出）'
-    label_bb=d.textbbox((0,0),label_txt,font=label_f); label_y=40
-    d.text(((W-(label_bb[2]-label_bb[0]))//2,label_y),label_txt,font=label_f,fill=GRAY)
-    label_bot=label_y+label_bb[3]
-    num_f=_font(FONT_B,108); num_s=str(int(fear_greed))
-    num_bb=d.textbbox((0,0),num_s,font=num_f); num_y=label_bot+8
-    d.text(((W-(num_bb[2]-num_bb[0]))//2,num_y),num_s,font=num_f,fill=RED)
-    num_bot=num_y+num_bb[3]
-    date_f=_font(FONT_R,27); date_str=datetime.date.today().strftime('%Y.%m.%d')
-    date_bb=d.textbbox((0,0),date_str,font=date_f); date_y=num_bot+8
-    d.text(((W-(date_bb[2]-date_bb[0]))//2,date_y),date_str,font=date_f,fill=(55,60,78))
+    # ① タイトル（小）
+    title_f=_font(FONT_R,52); title_txt='市場恐怖度（独自算出）'
+    title_bb=d.textbbox((0,0),title_txt,font=title_f); title_y=38
+    d.text(((W-(title_bb[2]-title_bb[0]))//2,title_y),title_txt,font=title_f,fill=GRAY)
+    title_bot=title_y+title_bb[3]
+    # ② 日付（大）
+    date_f=_font(FONT_B,80); date_str=datetime.date.today().strftime('%Y.%m.%d')
+    date_bb=d.textbbox((0,0),date_str,font=date_f); date_y=title_bot+10
+    d.text(((W-(date_bb[2]-date_bb[0]))//2,date_y),date_str,font=date_f,fill=WHITE)
+    date_bot=date_y+date_bb[3]
+    # ③ 恐怖指数ラベル＋数値（小・横並び）
+    lbl_f=_font(FONT_R,36); val_f=_font(FONT_B,44)
+    lbl_s='恐怖指数 '; val_s=str(int(fear_greed))
+    lbl_bb=d.textbbox((0,0),lbl_s,font=lbl_f); val_bb=d.textbbox((0,0),val_s,font=val_f)
+    total_w=(lbl_bb[2]-lbl_bb[0])+(val_bb[2]-val_bb[0]); sx=(W-total_w)//2; num_y=date_bot+14
+    lh=lbl_bb[3]-lbl_bb[1]; vh=val_bb[3]-val_bb[1]; mh=max(lh,vh)
+    d.text((sx,num_y+(mh-lh)//2),lbl_s,font=lbl_f,fill=GRAY)
+    d.text((sx+(lbl_bb[2]-lbl_bb[0]),num_y+(mh-vh)//2),val_s,font=val_f,fill=RED)
 
     # ── セクションタイトル ────────────────────────────
     d.rectangle([(0,Y_SECTION),(W,Y_SECTION+SECTION_H)], fill=(18,20,28))
